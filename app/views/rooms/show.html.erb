@@ -2,9 +2,16 @@
 
 <%= render @room %>
 
+
+<div id="message-list">
+  <%= render @room.messages %>
+</div>
+
+<%= render "messages/form", message: Message.new(room: @room) %>
+
 <div>
   <%= link_to "Edit this room", edit_room_path(@room) %> |
   <%= link_to "Back to rooms", rooms_path %>
 
-  <%= button_to "Destroy this room", @room, method: :delete %>
+  <%= button_to "Destroy this room", @room, method: :delete, data: { confirm: "Are you sure?" } %>
 </div>

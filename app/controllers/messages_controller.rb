@@ -1,15 +1,24 @@
 class MessagesController < ApplicationController
   before_action :set_message, only: %i[ show edit update destroy ]
+  before_action :authenticate_user!
+  before_action :set_room
+
 
   # GET /messages or /messages.json
   def index
     if params[:room_id]
-      @room = Room.find(params[:room_id])
-      @messages = @room.messages
+      @room = Room.find_by(id: params[:room_id])
+      if @room
+        @messages = @room.messages
+      else
+        @messages = []
+        flash[:alert] = "Room not found"
+      end
     else
       @messages = []
     end
   end
+
 
   # GET /messages/1 or /messages/1.json
   def show
@@ -27,14 +36,13 @@ class MessagesController < ApplicationController
   # POST /messages or /messages.json
   def create
     @message = Message.new(message_params)
+    @message.user = current_user
+    @message.room = Room.find(params[:room_id])
 
     respond_to do |format|
       if @message.save
         @message.broadcast_append_to @message.room, partial: @message, locals: { message: @message }, target: "message-list"
-
-
-
-        format.html { redirect_to @message, notice: "Message was successfully created." }
+        format.html { redirect_to room_path(@message.room), notice: "Message sent!" }
         format.json { render :show, status: :created, location: @message }
         format.turbo_stream
       else
@@ -43,6 +51,10 @@ class MessagesController < ApplicationController
       end
     end
   end
+
+
+
+
 
   # PATCH/PUT /messages/1 or /messages/1.json
   def update
@@ -63,20 +75,27 @@ class MessagesController < ApplicationController
 
     respond_to do |format|
       @message.broadcast_remove_to @message.room, target: @message
-      format.html { redirect_to messages_path, status: :see_other, notice: "Message was successfully destroyed." }
+      format.html { redirect_to room_path(@room), status: :see_other, notice: "Message was successfully destroyed." }
       format.json { head :no_content }
       format.turbo_stream
     end
   end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_message
-      @message = Message.find(params.expect(:id))
-    end
 
-    # Only allow a list of trusted parameters through.
-    def message_params
-      params.expect(message: [ :content, :room_id ])
-    end
+
+  private
+  # Use callbacks to share common setup or constraints between actions.
+  def set_message
+    @message = Message.find(params.expect(:id))
+  end
+
+  # Only allow a list of trusted parameters through.
+  def message_params
+    params.expect(message: [ :content, :room_id ])
+  end
+
+  def set_room
+    @room = Room.find_by(id: params[:room_id])
+    redirect_to rooms_path, alert: "Room not found" if @room.nil?
+  end
 end

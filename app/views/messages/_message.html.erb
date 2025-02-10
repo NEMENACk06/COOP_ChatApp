@@ -1,4 +1,6 @@
 <div id="<%= dom_id message %>" class="message">
+   <%= message.user.email %>
+   <%= message.created_at.strftime("%H:%M:%S") %>
   <%= message.content %>
-  <%= button_to 'Delete', message, method: :delete, data: { confirm: 'Are you sure?' } %>
+  <%= button_to 'Delete', room_message_path(message.room, message), method: :delete, data: { confirm: 'Are you sure?' } %>
 </div>
