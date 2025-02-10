@@ -1,6 +1,17 @@
-<div id="<%= dom_id message %>" class="message">
-   <%= message.user.email %>
-   <%= message.created_at.strftime("%H:%M:%S") %>
-  <%= message.content %>
-  <%= button_to 'Delete', room_message_path(message.room, message), method: :delete, data: { confirm: 'Are you sure?' } %>
+<div id="<%= dom_id message %>" class="message-container">
+  <div class="message-header">
+    <%= image_tag(message.user&.avatar_url.present? ? message.user.avatar_url : 'anonymous.png', class: "avatar") %>
+    <div class="message-info">
+      <strong class="user-email"><%= message.user.email %></strong>
+      <span class="message-time"><%= message.created_at.strftime("%H:%M:%S") %></span>
+    </div>
+  </div>
+  
+  <div class="message-body">
+    <p class="message-content"><%= message.content %></p>
+  </div>
+
+  <div class="message-footer">
+    <%= button_to 'Delete', room_message_path(message.room, message), method: :delete, data: { confirm: 'Are you sure?' }, class: "delete-button" %>
+  </div>
 </div>
